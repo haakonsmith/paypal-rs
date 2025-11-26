@@ -229,18 +229,22 @@ impl Client {
         }
 
         let res = request.send().await?;
+        let is_success = res.status().is_success();
 
-        if res.status().is_success() {
+        let resp_text = res.text().await?;
+
+        tracing::debug!(name: "PayPal api response body", resp_text);
+
+        if is_success {
+            let response_body = serde_json::from_str(&resp_text)?;
             // code to debug responses when parse fails.
-            //let resp_text = res.text().await?;
-            //dbg!(&resp_text);
-            //let mut f = std::fs::File::create("output.txt").unwrap();
-            //f.write_all(resp_text.as_bytes()).ok();
-            //let response_body: E::Response = serde_json::from_str(&resp_text).unwrap();
-            let response_body = res.json::<E::Response>().await?;
+            // let response_body = res.json::<E::Response>().await?;
             Ok(response_body)
         } else {
-            Err(ResponseError::ApiError(res.json::<PaypalError>().await?))
+            let response_body = serde_json::from_str(&resp_text)?;
+
+            Err(ResponseError::ApiError(response_body))
+            // Err(ResponseError::ApiError(res.json::<PaypalError>().await?))
         }
     }
 

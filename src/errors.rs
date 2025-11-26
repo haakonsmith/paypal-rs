@@ -69,44 +69,17 @@ impl fmt::Display for PaypalError {
 impl Error for PaypalError {}
 
 /// A response error, it may be paypal related or an error related to the http request itself.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum ResponseError {
     /// A paypal api error.
-    ApiError(PaypalError),
+    #[error("PayPal error {0}")]
+    ApiError(#[from] PaypalError),
+    /// A serde error
+    #[error("Serde error {0}")]
+    Serde(#[from] serde_json::Error),
     /// A http error.
-    HttpError(reqwest::Error),
-}
-
-impl fmt::Display for ResponseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ResponseError::ApiError(e) => write!(f, "{}", e),
-            ResponseError::HttpError(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl Error for ResponseError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            ResponseError::ApiError(e) => Some(e),
-            ResponseError::HttpError(e) => Some(e),
-        }
-    }
-}
-
-// Implemented so we can use ? directly on it.
-impl From<PaypalError> for ResponseError {
-    fn from(e: PaypalError) -> Self {
-        ResponseError::ApiError(e)
-    }
-}
-
-// Implemented so we can use ? directly on it.
-impl From<reqwest::Error> for ResponseError {
-    fn from(e: reqwest::Error) -> Self {
-        ResponseError::HttpError(e)
-    }
+    #[error("Http error {0}")]
+    HttpError(#[from] reqwest::Error),
 }
 
 /// When a currency is invalid.
