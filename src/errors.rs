@@ -42,8 +42,8 @@ impl<T: DeserializeOwned> Default for OneOrMany<T> {
 /// A paypal api response error.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PaypalError {
-    /// The error name.
-    pub name: String,
+    /// The error name. Not avaliable on identity errors
+    pub name: Option<String>,
     /// The error message.
     pub message: Option<String>,
     /// Paypal debug id
@@ -151,5 +151,14 @@ mod tests {
                   }
                 }
         )).unwrap();
+    }
+
+    #[test]
+    fn test_decoding_auth_error() {
+        serde_json::from_value::<PaypalError>(json!({
+            "error":"invalid_client"
+            ,"error_description":"Client Authentication failed"
+        }))
+        .unwrap();
     }
 }

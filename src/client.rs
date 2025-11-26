@@ -185,24 +185,17 @@ impl Client {
             .header("Accept", "application/json")
             .body("grant_type=client_credentials")
             .send()
-            .await
-            .map_err(ResponseError::HttpError)?;
+            .await?;
 
-        let is_success = res.status().is_success();
-
-        let resp_text = res.text().await?;
-
-        tracing::debug!(name: "PayPal api response body", resp_text);
-
-        if is_success {
-            let token: AccessToken = serde_json::from_str(&resp_text)?;
+        if res.status().is_success() {
+            let token: AccessToken = res.json().await?;
 
             self.auth.expires = Some((Instant::now(), Duration::new(token.expires_in, 0)));
             self.auth.access_token = Some(token);
 
             Ok(())
         } else {
-            Err(ResponseError::ApiError(serde_json::from_str(&resp_text)?))
+            Err(ResponseError::ApiError(res.json().await?))
         }
     }
 
