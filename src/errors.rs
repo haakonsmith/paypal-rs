@@ -1,9 +1,12 @@
 //! Errors created by this crate.
+//!
+//! PayPal errors: https://developer.paypal.com/api/rest/responses
+
 use crate::data::common::LinkDescription;
+use reqwest::header::InvalidHeaderValue;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt;
 
 /// This comes from the ass backwards reality that is paypal rest api.
@@ -40,7 +43,7 @@ impl<T: DeserializeOwned> Default for OneOrMany<T> {
 }
 
 /// A paypal api response error.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, thiserror::Error)]
 pub struct PaypalError {
     /// The error name. Not avaliable on identity errors
     pub name: Option<String>,
@@ -62,49 +65,76 @@ pub struct PaypalError {
 
 impl fmt::Display for PaypalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#?}", self)
+        // Get the error name, preferring `name` over `error` (identity errors use `error`)
+        let name = self
+            .name
+            .as_ref()
+            .or(self.error.as_ref())
+            .map(|s| s.as_str())
+            .unwrap_or("Unknown error");
+
+        write!(f, "PayPal error: {name}")?;
+
+        // Include message or error_description if available
+        if let Some(msg) = self.message.as_ref().or(self.error_description.as_ref()) {
+            write!(f, " - {msg}")?;
+        }
+
+        // Include debug_id for troubleshooting
+        if let Some(debug_id) = &self.debug_id {
+            write!(f, " (debug_id: {debug_id})")?;
+        }
+
+        // Include details if present
+        let details = self.details.to_vec();
+        if !details.is_empty() {
+            write!(f, " [details: ")?;
+            for (i, detail) in details.iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                // Format each detail map
+                let detail_str: Vec<String> = detail.iter().map(|(k, v)| format!("{k}: {v}")).collect();
+                write!(f, "{{{}}}", detail_str.join(", "))?;
+            }
+            write!(f, "]")?;
+        }
+
+        Ok(())
     }
 }
-
-impl Error for PaypalError {}
 
 /// A response error, it may be paypal related or an error related to the http request itself.
 #[derive(Debug, thiserror::Error)]
 pub enum ResponseError {
-    /// A paypal api error.
+    /// A PayPal error, this means you are not using the api in a valid way
     #[error("PayPal error {0}")]
     ApiError(#[from] PaypalError),
-    /// A serde error
+    /// Failed to deserialise a PayPal response. This is probably a paypal-rs problem
     #[error("Serde error {0}")]
     Serde(#[from] serde_json::Error),
-    /// A http error.
+    /// Failed to execute HTTP request, this probably means you don't have a net connection
     #[error("Http error {0}")]
     HttpError(#[from] reqwest::Error),
+
+    /// Failed to convert an input string into a header. This means you have passed an invalid codec
+    #[error(transparent)]
+    HeaderValue(#[from] InvalidHeaderValue),
+
+    /// Failed to encode jsonwebtoken. This only happens if you are passing an auth-assertion
+    #[error(transparent)]
+    JsonWebToken(#[from] jsonwebtoken::errors::Error),
 }
 
 /// When a currency is invalid.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
+#[error("{0} is not a valid currency")]
 pub struct InvalidCurrencyError(pub String);
 
-impl fmt::Display for InvalidCurrencyError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} is not a valid currency", self.0)
-    }
-}
-
-impl Error for InvalidCurrencyError {}
-
 /// When a country is invalid.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
+#[error("{0} is not a valid country")]
 pub struct InvalidCountryError(pub String);
-
-impl fmt::Display for InvalidCountryError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} is not a valid country", self.0)
-    }
-}
-
-impl Error for InvalidCountryError {}
 
 #[cfg(test)]
 mod tests {

@@ -1,15 +1,12 @@
 //! The paypal api wrapper client, which holds the http request client.
 
-use base64::Engine;
 use reqwest::header::{self, HeaderMap};
 use serde::Deserialize;
 use std::time::Duration;
 use std::time::Instant;
 
 use crate::{
-    endpoint::Endpoint,
-    errors::{PaypalError, ResponseError},
-    AuthAssertionClaims, HeaderParams, LIVE_ENDPOINT, SANDBOX_ENDPOINT,
+    endpoint::Endpoint, errors::ResponseError, AuthAssertionClaims, HeaderParams, LIVE_ENDPOINT, SANDBOX_ENDPOINT,
 };
 
 /// Represents the access token returned by the OAuth2 authentication.
@@ -126,46 +123,45 @@ impl Client {
     ) -> Result<reqwest::RequestBuilder, ResponseError> {
         let mut headers = HeaderMap::new();
 
-        headers.append(header::ACCEPT, "application/json".parse().unwrap());
+        headers.append(header::ACCEPT, "application/json".parse()?);
 
         if let Some(token) = &self.auth.access_token {
-            headers.append(
-                header::AUTHORIZATION,
-                format!("Bearer {}", token.access_token).parse().unwrap(),
-            );
+            headers.append(header::AUTHORIZATION, format!("Bearer {}", token.access_token).parse()?);
         }
 
+        // related: https://developer.paypal.com/api/rest/requests/#link-paypalauthassertion
         if let Some(merchant_payer_id) = header_params.merchant_payer_id {
             let claims = AuthAssertionClaims {
                 iss: self.auth.client_id.clone(),
                 payer_id: merchant_payer_id,
             };
+
             let jwt_header = jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256);
             let token = jsonwebtoken::encode(
                 &jwt_header,
                 &claims,
                 &jsonwebtoken::EncodingKey::from_secret(self.auth.secret.as_ref()),
-            )
-            .unwrap();
-            headers.append("PayPal-Auth-Assertion", token.parse().unwrap());
+            )?;
+
+            headers.append("PayPal-Auth-Assertion", token.parse()?);
         }
 
         if let Some(client_metadata_id) = header_params.client_metadata_id {
-            headers.append("PayPal-Client-Metadata-Id", client_metadata_id.parse().unwrap());
+            headers.append("PayPal-Client-Metadata-Id", client_metadata_id.parse()?);
         }
 
         if let Some(partner_attribution_id) = header_params.partner_attribution_id {
-            headers.append("PayPal-Partner-Attribution-Id", partner_attribution_id.parse().unwrap());
+            headers.append("PayPal-Partner-Attribution-Id", partner_attribution_id.parse()?);
         }
 
         if let Some(request_id) = header_params.request_id {
-            headers.append("PayPal-Request-Id", request_id.parse().unwrap());
+            headers.append("PayPal-Request-Id", request_id.parse()?);
         }
 
-        headers.append("Prefer", "return=representation".parse().unwrap());
+        headers.append("Prefer", "return=representation".parse()?);
 
         if let Some(content_type) = header_params.content_type {
-            headers.append(header::CONTENT_TYPE, content_type.parse().unwrap());
+            headers.append(header::CONTENT_TYPE, content_type.parse()?);
         }
 
         Ok(builder.headers(headers))
