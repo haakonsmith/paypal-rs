@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 /// IS0-3166-1 country codes
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum Country {
     /// ALBANIA
     AL,
@@ -390,6 +391,7 @@ pub enum Country {
     /// UNITED KINGDOM
     GB,
     /// UNITED STATES
+    #[default]
     US,
     /// URUGUAY
     UY,
@@ -411,11 +413,6 @@ pub enum Country {
     ZW,
 }
 
-impl Default for Country {
-    fn default() -> Self {
-        Self::US
-    }
-}
 
 impl std::fmt::Display for Country {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -33,7 +33,7 @@ impl Endpoint for CreateOrder {
 
     type Response = Order;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Borrowed("/v2/checkout/orders")
     }
 
@@ -69,7 +69,7 @@ impl Endpoint for ShowOrderDetails {
 
     type Response = Order;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/checkout/orders/{}", self.order_id))
     }
 
@@ -132,7 +132,7 @@ impl Endpoint for CaptureOrder {
 
     type Response = Order;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/checkout/orders/{}/capture", self.order_id))
     }
 
@@ -173,7 +173,7 @@ impl Endpoint for AuthorizeOrder {
 
     type Response = Order;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/checkout/orders/{}/authorize", self.order_id))
     }
 

@@ -35,7 +35,7 @@ impl Endpoint for GetAuthorizedPayment {
 
     type Response = AuthorizedPaymentDetails;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/payments/authorizations/{}", self.authorization_id))
     }
 

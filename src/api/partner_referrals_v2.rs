@@ -146,7 +146,7 @@ impl Endpoint for CreatePartnerReferral {
     type Body = ReferralData;
     type Response = CreateReferralDataResponse;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Borrowed("/v2/customer/partner-referrals")
     }
 
@@ -190,7 +190,7 @@ impl Endpoint for ShowPartnerReferralDetails {
     type Body = ();
     type Response = ReferralDataResponse;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/customer/partner-referrals/{}", self.partner_referral_id))
     }
 

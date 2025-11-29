@@ -125,6 +125,7 @@ pub struct LinkDescription {
 
 /// ISO-4217 currency codes.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
+#[derive(Default)]
 pub enum Currency {
     /// Australian dollar
     AUD,
@@ -139,6 +140,7 @@ pub enum Currency {
     /// Danish krone
     DKK,
     /// Euro
+    #[default]
     EUR,
     /// Hong Kong dollar
     HKD,
@@ -180,11 +182,6 @@ pub enum Currency {
     USD,
 }
 
-impl Default for Currency {
-    fn default() -> Self {
-        Self::EUR
-    }
-}
 
 impl std::fmt::Display for Currency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

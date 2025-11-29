@@ -13,7 +13,7 @@ pub trait Endpoint {
     type Response: DeserializeOwned;
 
     /// The endpoint relative path. Must start with a `/`
-    fn relative_path(&self) -> Cow<str>;
+    fn relative_path(&self) -> Cow<'_, str>;
 
     /// The request method of this endpoint.
     fn method(&self) -> reqwest::Method;

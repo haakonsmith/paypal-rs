@@ -45,7 +45,7 @@ impl Endpoint for GenerateInvoiceNumber {
 
     type Response = InvoiceNumber;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Borrowed("/v2/invoicing/generate-next-invoice-number")
     }
 
@@ -80,7 +80,7 @@ impl Endpoint for CreateDraftInvoice {
 
     type Response = Invoice;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Borrowed("/v2/invoicing/invoices")
     }
 
@@ -116,7 +116,7 @@ impl Endpoint for GetInvoice {
 
     type Response = Invoice;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/invoicing/invoices/{}", self.invoice_id))
     }
 
@@ -147,7 +147,7 @@ impl Endpoint for ListInvoices {
 
     type Response = InvoiceList;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Borrowed("/v2/invoicing/invoices")
     }
 
@@ -187,7 +187,7 @@ impl Endpoint for DeleteInvoice {
 
     type Response = ();
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/invoicing/invoices/{}", self.invoice_id))
     }
 
@@ -230,7 +230,7 @@ impl Endpoint for UpdateInvoice {
 
     type Response = Invoice;
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/invoicing/invoices/{}", self.invoice.id))
     }
 
@@ -273,7 +273,7 @@ impl Endpoint for CancelInvoice {
 
     type Response = ();
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/invoicing/invoices/{}/cancel", self.invoice_id))
     }
 
@@ -312,7 +312,7 @@ impl Endpoint for SendInvoice {
 
     type Response = ();
 
-    fn relative_path(&self) -> Cow<str> {
+    fn relative_path(&self) -> Cow<'_, str> {
         Cow::Owned(format!("/v2/invoicing/invoices/{}/send", self.invoice_id))
     }
 

@@ -8,8 +8,10 @@ use serde_with::skip_serializing_none;
 /// The intent to either capture payment immediately or authorize a payment for an order after order creation.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum Intent {
     /// The merchant intends to capture payment immediately after the customer makes a payment.
+    #[default]
     Capture,
     /// The merchant intends to authorize a payment and place funds on hold after the customer makes a payment.
     /// Authorized payments are guaranteed for up to three days but are available to capture for up to 29 days.
@@ -19,11 +21,6 @@ pub enum Intent {
     Authorize,
 }
 
-impl Default for Intent {
-    fn default() -> Self {
-        Intent::Capture
-    }
-}
 
 /// Represents a payer name.
 ///
@@ -198,8 +195,10 @@ pub struct PlatformFee {
 
 /// The funds that are held on behalf of the merchant
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Default)]
 pub enum DisbursementMode {
     /// The funds are released to the merchant immediately.
+    #[default]
     Instant,
     /// The funds are held for a finite number of days. The actual duration depends on the region and type of integration.
     /// You can release the funds through a referenced payout.
@@ -207,11 +206,6 @@ pub enum DisbursementMode {
     Delayed,
 }
 
-impl Default for DisbursementMode {
-    fn default() -> Self {
-        DisbursementMode::Instant
-    }
-}
 
 /// Any additional payment instructions for PayPal Commerce Platform customers.
 #[skip_serializing_none]
@@ -227,10 +221,12 @@ pub struct PaymentInstruction {
 /// The item category type.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum ItemCategoryType {
     /// Goods that are stored, delivered, and used in their electronic format.
     /// This value is not currently supported for API callers that leverage
     /// the [PayPal for Commerce Platform](https://www.paypal.com/us/webapps/mpp/commerce-platform) product.
+    #[default]
     DigitalGoods,
     /// A tangible item that can be shipped with proof of delivery.
     PhysicalGoods,
@@ -239,11 +235,6 @@ pub enum ItemCategoryType {
     Donation,
 }
 
-impl Default for ItemCategoryType {
-    fn default() -> Self {
-        ItemCategoryType::DigitalGoods
-    }
-}
 
 /// The name of the person to whom to ship the items.
 #[skip_serializing_none]
@@ -551,6 +542,7 @@ impl PurchaseUnit {
 /// The type of landing page to show on the PayPal site for customer checkout.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum LandingPage {
     /// When the customer clicks PayPal Checkout, the customer is redirected to a page to log in to PayPal and approve the payment.
     Login,
@@ -560,20 +552,18 @@ pub enum LandingPage {
     /// When the customer clicks PayPal Checkout, the customer is redirected to either a page to log in to PayPal and approve
     /// the payment or to a page to enter credit or debit card and other relevant billing information required to complete the purchase,
     /// depending on their previous interaction with PayPal.
+    #[default]
     NoPreference,
 }
 
-impl Default for LandingPage {
-    fn default() -> Self {
-        LandingPage::NoPreference
-    }
-}
 
 /// The shipping preference
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum ShippingPreference {
     /// Use the customer-provided shipping address on the PayPal site.
+    #[default]
     GetFromFile,
     /// Redact the shipping address from the PayPal site. Recommended for digital goods.
     NoShipping,
@@ -581,19 +571,16 @@ pub enum ShippingPreference {
     SetProvidedAddress,
 }
 
-impl Default for ShippingPreference {
-    fn default() -> Self {
-        ShippingPreference::GetFromFile
-    }
-}
 
 /// Configures a Continue or Pay Now checkout flow.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum UserAction {
     /// After you redirect the customer to the PayPal payment page, a Continue button appears. Use this option when
     /// the final amount is not known when the checkout flow is initiated and you want to redirect the customer
     /// to the merchant page without processing the payment.
+    #[default]
     Continue,
     /// After you redirect the customer to the PayPal payment page, a Pay Now button appears.
     /// Use this option when the final amount is known when the checkout is initiated and you want to
@@ -601,17 +588,14 @@ pub enum UserAction {
     PayNow,
 }
 
-impl Default for UserAction {
-    fn default() -> Self {
-        UserAction::Continue
-    }
-}
 
 /// The merchant-preferred payment sources.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum PayeePreferred {
     /// Accepts any type of payment from the customer.
+    #[default]
     Unrestricted,
     /// Accepts only immediate payment from the customer.
     /// For example, credit card, PayPal balance, or instant ACH.
@@ -619,11 +603,6 @@ pub enum PayeePreferred {
     ImmediatePaymentRequired,
 }
 
-impl Default for PayeePreferred {
-    fn default() -> Self {
-        PayeePreferred::Unrestricted
-    }
-}
 
 /// A payment method.
 #[skip_serializing_none]
