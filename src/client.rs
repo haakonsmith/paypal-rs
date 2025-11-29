@@ -147,8 +147,7 @@ impl Client {
                 &jsonwebtoken::EncodingKey::from_secret(self.auth.secret.as_ref()),
             )
             .unwrap();
-            let encoded_token = base64::engine::general_purpose::STANDARD_NO_PAD.encode(token);
-            headers.append("PayPal-Auth-Assertion", encoded_token.parse().unwrap());
+            headers.append("PayPal-Auth-Assertion", token.parse().unwrap());
         }
 
         if let Some(client_metadata_id) = header_params.client_metadata_id {
