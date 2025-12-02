@@ -183,6 +183,8 @@ pub enum LinkMethod {
 /// A HATEOAS link
 ///
 /// related: https://developer.paypal.com/api/rest/responses/#link-hateoaslinks
+///
+/// This link will impl Endpoint so you can reuse the paypal client for it
 #[skip_serializing_none]
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct LinkDescription {
