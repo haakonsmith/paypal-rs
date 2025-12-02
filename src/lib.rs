@@ -90,6 +90,9 @@
 #![deny(missing_docs)]
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "webhook")]
+pub mod webhook;
+
 pub mod api;
 pub mod client;
 pub mod countries;
