@@ -45,7 +45,7 @@ wiremock = "0.6.0"
 [features]
 default = ["reqwest/native-tls"]
 rustls = ["reqwest/rustls-tls"]
-webhook = ["lru", "rsa", "sha2", "pem", "crc32fast", "signature"]
+webhook = ["lru", "rsa", "sha2", "pem", "crc32fast", "signature", "x509-parser"]
 lru = ["dep:lru"]
 rsa = ["dep:rsa"]
 sha2 = ["dep:sha2"]
