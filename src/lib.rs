@@ -19,7 +19,7 @@
 //!     Client,
 //!     api::orders::*,
 //!     data::orders::*,
-//!     data::common::Currency,
+//!     data::common::{Currency, Amount},
 //!     PaypalEnv,
 //! };
 //!
@@ -39,7 +39,7 @@
 //!         .build().unwrap();
 //!
 //!     let create_order = CreateOrder::new(order);
-//!    
+//!
 //!     let _order_created = client
 //!         .execute(&create_order).await.unwrap();
 //! }

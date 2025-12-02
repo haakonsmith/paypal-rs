@@ -1,6 +1,9 @@
 use paypal_rs::{
     api::orders::*,
-    data::{common::AddressBuilder, orders::*},
+    data::{
+        common::{AddressBuilder, Amount},
+        orders::*,
+    },
 };
 use paypal_rs::{Client, PaypalEnv};
 use wiremock::matchers::{basic_auth, bearer_token, body_string, header, method, path};

@@ -21,7 +21,6 @@ pub enum Intent {
     Authorize,
 }
 
-
 /// Represents a payer name.
 ///
 /// <https://developer.paypal.com/docs/api/orders/v2/#definition-payer.name>
@@ -102,77 +101,9 @@ pub struct Payer {
     pub address: Option<Address>,
 }
 
-/// Breakdown provides details such as total item amount, total tax amount, shipping, handling, insurance, and discounts, if any.
-#[skip_serializing_none]
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder)]
-#[builder(setter(strip_option, into))]
-pub struct Breakdown {
-    /// The subtotal for all items. Required if the request includes purchase_units[].items[].unit_amount.
-    /// Must equal the sum of (items[].unit_amount * items[].quantity) for all items.
-    pub item_total: Option<Money>,
-    /// The shipping fee for all items within a given purchase_unit.
-    pub shipping: Option<Money>,
-    /// The handling fee for all items within a given purchase_unit.
-    pub handling: Option<Money>,
-    /// The total tax for all items. Required if the request includes purchase_units.items.tax. Must equal the sum of (items[].tax * items[].quantity) for all items.
-    pub tax_total: Option<Money>,
-    /// The insurance fee for all items within a given purchase_unit.
-    pub insurance: Option<Money>,
-    /// The shipping discount for all items within a given purchase_unit.
-    pub shipping_discount: Option<Money>,
-    /// The discount for all items within a given purchase_unit.
-    pub discount: Option<Money>,
-}
-
-/// Represents an amount of money.
-#[skip_serializing_none]
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder)]
-#[builder(setter(strip_option))]
-pub struct Amount {
-    /// The [three-character ISO-4217 currency code](https://developer.paypal.com/docs/integration/direct/rest/currency-codes/) that identifies the currency.
-    pub currency_code: Currency,
-    /// The value, which might be:
-    /// - An integer for currencies like JPY that are not typically fractional.
-    /// - A decimal fraction for currencies like TND that are subdivided into thousandths.
-    ///
-    /// For the required number of decimal places for a currency code, see [Currency Codes](https://developer.paypal.com/docs/api/reference/currency-codes/).
-    pub value: String,
-    /// The breakdown of the amount.
-    pub breakdown: Option<Breakdown>,
-}
-
-impl Amount {
-    /// Creates a new amount with the required values.
-    pub fn new(currency: Currency, value: &str) -> Self {
-        Amount {
-            currency_code: currency,
-            value: value.to_owned(),
-            breakdown: None,
-        }
-    }
-
-    /// Creates a new amount with the EUR currency.
-    pub fn eur(value: &str) -> Self {
-        Amount {
-            currency_code: Currency::EUR,
-            value: value.to_owned(),
-            breakdown: None,
-        }
-    }
-
-    /// Creates a new amount with the USD currency.
-    pub fn usd(value: &str) -> Self {
-        Amount {
-            currency_code: Currency::USD,
-            value: value.to_owned(),
-            breakdown: None,
-        }
-    }
-}
-
 /// The merchant who receives payment for this transaction.
 #[skip_serializing_none]
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder, PartialEq, Eq)]
 #[builder(setter(strip_option, into))]
 pub struct Payee {
     /// The email address of merchant.
@@ -183,7 +114,7 @@ pub struct Payee {
 
 /// Fees, commissions, tips, or donations
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, Clone, Builder)]
+#[derive(Debug, Serialize, Deserialize, Clone, Builder, PartialEq, Eq)]
 #[builder(setter(strip_option))]
 pub struct PlatformFee {
     /// The fee for this transaction.
@@ -194,8 +125,7 @@ pub struct PlatformFee {
 }
 
 /// The funds that are held on behalf of the merchant
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
-#[derive(Default)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub enum DisbursementMode {
     /// The funds are released to the merchant immediately.
     #[default]
@@ -205,7 +135,6 @@ pub enum DisbursementMode {
     /// Otherwise, the funds disbursed automatically after the specified duration.
     Delayed,
 }
-
 
 /// Any additional payment instructions for PayPal Commerce Platform customers.
 #[skip_serializing_none]
@@ -234,7 +163,6 @@ pub enum ItemCategoryType {
     /// A contribution or gift for which no good or service is exchanged, usually to a not for profit organization.
     Donation,
 }
-
 
 /// The name of the person to whom to ship the items.
 #[skip_serializing_none]
@@ -363,15 +291,91 @@ pub struct CaptureStatusDetails {
     pub reason: CaptureStatusDetailsReason,
 }
 
+/// Related transaction identifiers
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Builder)]
+#[builder(setter(strip_option))]
+pub struct RelatedIds {
+    /// The order ID associated with this capture
+    /// This is what you use to find the paypal_transaction record!
+    pub order_id: Option<String>,
+    /// The authorization ID associated with this capture
+    pub authorization_id: Option<String>,
+}
+
+/// Additional payment-related data
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Builder)]
+#[builder(setter(strip_option))]
+pub struct SupplementaryData {
+    /// Related IDs for the transaction
+    pub related_ids: Option<RelatedIds>,
+}
+
+/// Seller protection details
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Builder)]
+#[builder(setter(strip_option))]
+pub struct SellerProtection {
+    /// Indicates whether the transaction is eligible for seller protection
+    /// Values: ELIGIBLE, PARTIALLY_ELIGIBLE, NOT_ELIGIBLE
+    pub status: String,
+    /// An array of conditions that are covered for the transaction
+    #[serde(default)]
+    pub dispute_categories: Vec<String>,
+}
+
+/// Breakdown of the seller receivable amount
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Builder)]
+#[builder(setter(strip_option))]
+pub struct SellerReceivableBreakdown {
+    /// The amount for this captured payment in the currency of the transaction
+    pub gross_amount: Amount,
+    /// The applicable fee for this captured payment
+    pub paypal_fee: Option<Amount>,
+    /// The net amount that the payee receives for this captured payment
+    pub net_amount: Amount,
+    /// An array of platform or partner fees, commissions, or brokerage fees
+    #[serde(default)]
+    pub platform_fees: Vec<PlatformFee>,
+}
+
 /// A captured payment.
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Builder)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Builder)]
 #[builder(setter(strip_option))]
 pub struct Capture {
     /// The status of the captured payment.
+    /// Values: COMPLETED, DECLINED, PARTIALLY_REFUNDED, PENDING, REFUNDED
     pub status: CaptureStatus,
     /// The details of the captured payment status.
     pub status_details: Option<CaptureStatusDetails>,
+
+    /// The PayPal-generated ID for the captured payment
+    pub id: String,
+    /// The amount for this captured payment
+    pub amount: Amount,
+    /// Indicates whether you can make additional captures against the authorized payment
+    #[serde(default)]
+    pub final_capture: bool,
+    /// The level of protection offered for the transaction
+    pub seller_protection: Option<SellerProtection>,
+    /// The detailed breakdown of the capture amount
+    pub seller_receivable_breakdown: Option<SellerReceivableBreakdown>,
+    /// The API caller-provided external invoice number for this order
+    pub invoice_id: Option<String>,
+    /// The API caller-provided external ID
+    pub custom_id: Option<String>,
+    /// An array of related HATEOAS links
+    #[serde(default)]
+    pub links: Vec<LinkDescription>,
+    /// The date and time when the transaction was created
+    pub create_time: String,
+    /// The date and time when the transaction was last updated
+    pub update_time: String,
+    /// Additional payment related data
+    pub supplementary_data: Option<SupplementaryData>,
 }
 
 /// The status of the refund
@@ -556,7 +560,6 @@ pub enum LandingPage {
     NoPreference,
 }
 
-
 /// The shipping preference
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -570,7 +573,6 @@ pub enum ShippingPreference {
     ///  Use the merchant-provided address. The customer cannot change this address on the PayPal site.
     SetProvidedAddress,
 }
-
 
 /// Configures a Continue or Pay Now checkout flow.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
@@ -588,7 +590,6 @@ pub enum UserAction {
     PayNow,
 }
 
-
 /// The merchant-preferred payment sources.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -602,7 +603,6 @@ pub enum PayeePreferred {
     /// Ensures that at the time of capture, the payment does not have the `pending` status.
     ImmediatePaymentRequired,
 }
-
 
 /// A payment method.
 #[skip_serializing_none]

@@ -6,6 +6,75 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::str::FromStr;
 
+/// Represents an amount of money.
+#[skip_serializing_none]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder, Eq, PartialEq)]
+#[builder(setter(strip_option, into))]
+pub struct Amount {
+    /// The [three-character ISO-4217 currency code](https://developer.paypal.com/docs/integration/direct/rest/currency-codes/) that identifies the currency.
+    pub currency_code: Currency,
+    /// The value, which might be:
+    /// - An integer for currencies like JPY that are not typically fractional.
+    /// - A decimal fraction for currencies like TND that are subdivided into thousandths.
+    ///
+    /// For the required number of decimal places for a currency code, see [Currency Codes](https://developer.paypal.com/docs/api/reference/currency-codes/).
+    pub value: String,
+    /// The breakdown of the amount. Breakdown provides details such as total item amount, total tax amount, custom amount, shipping and discounts, if any.
+    #[builder(default)]
+    pub breakdown: Option<Breakdown>,
+}
+
+impl Amount {
+    /// Creates a new amount with the required values.
+    pub fn new(currency: Currency, value: &str) -> Self {
+        Amount {
+            currency_code: currency,
+            value: value.to_owned(),
+            breakdown: None,
+        }
+    }
+
+    /// Creates a new amount with the EUR currency.
+    pub fn eur(value: &str) -> Self {
+        Amount {
+            currency_code: Currency::EUR,
+            value: value.to_owned(),
+            breakdown: None,
+        }
+    }
+
+    /// Creates a new amount with the USD currency.
+    pub fn usd(value: &str) -> Self {
+        Amount {
+            currency_code: Currency::USD,
+            value: value.to_owned(),
+            breakdown: None,
+        }
+    }
+}
+
+/// Breakdown provides details such as total item amount, total tax amount, shipping, handling, insurance, and discounts, if any.
+#[skip_serializing_none]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder, PartialEq, Eq)]
+#[builder(setter(strip_option, into))]
+pub struct Breakdown {
+    /// The subtotal for all items. Required if the request includes purchase_units[].items[].unit_amount.
+    /// Must equal the sum of (items[].unit_amount * items[].quantity) for all items.
+    pub item_total: Option<Money>,
+    /// The shipping fee for all items within a given purchase_unit.
+    pub shipping: Option<Money>,
+    /// The handling fee for all items within a given purchase_unit.
+    pub handling: Option<Money>,
+    /// The total tax for all items. Required if the request includes purchase_units.items.tax. Must equal the sum of (items[].tax * items[].quantity) for all items.
+    pub tax_total: Option<Money>,
+    /// The insurance fee for all items within a given purchase_unit.
+    pub insurance: Option<Money>,
+    /// The shipping discount for all items within a given purchase_unit.
+    pub shipping_discount: Option<Money>,
+    /// The discount for all items within a given purchase_unit.
+    pub discount: Option<Money>,
+}
+
 /// The phone type.
 ///
 /// <https://developer.paypal.com/docs/api/orders/v2/#definition-phone_with_type>
@@ -111,7 +180,9 @@ pub enum LinkMethod {
     Patch,
 }
 
-/// A HTOAES link
+/// A HATEOAS link
+///
+/// related: https://developer.paypal.com/api/rest/responses/#link-hateoaslinks
 #[skip_serializing_none]
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct LinkDescription {
@@ -124,8 +195,7 @@ pub struct LinkDescription {
 }
 
 /// ISO-4217 currency codes.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Default)]
 pub enum Currency {
     /// Australian dollar
     AUD,
@@ -181,7 +251,6 @@ pub enum Currency {
     /// United States dollar
     USD,
 }
-
 
 impl std::fmt::Display for Currency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

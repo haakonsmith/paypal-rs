@@ -506,7 +506,7 @@ pub enum PayPalEventType {
 /// assert!(matches!(event.event_type, PayPalEventType::PaymentAuthorizationCreated));
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalWebhookEvent {
+pub struct WebhookEvent {
     /// Unique event identifier
     pub id: String,
     /// Event type (e.g., "PAYMENT.CAPTURE.COMPLETED")
@@ -523,179 +523,9 @@ pub struct PayPalWebhookEvent {
     pub create_time: String,
 }
 
-/// PayPal capture resource - represents a completed payment capture
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalCapture {
-    /// The PayPal-generated ID for the captured payment
-    pub id: String,
-    /// The status of the captured payment
-    /// Values: COMPLETED, DECLINED, PARTIALLY_REFUNDED, PENDING, REFUNDED
-    pub status: String,
-    /// The amount for this captured payment
-    pub amount: PayPalAmount,
-    /// Indicates whether you can make additional captures against the authorized payment
-    #[serde(default)]
-    pub final_capture: bool,
-    /// The level of protection offered for the transaction
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seller_protection: Option<PayPalSellerProtection>,
-    /// The detailed breakdown of the capture amount
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seller_receivable_breakdown: Option<PayPalSellerReceivableBreakdown>,
-    /// The API caller-provided external invoice number for this order
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invoice_id: Option<String>,
-    /// The API caller-provided external ID
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub custom_id: Option<String>,
-    /// An array of related HATEOAS links
-    #[serde(default)]
-    pub links: Vec<PayPalLink>,
-    /// The date and time when the transaction was created
-    pub create_time: String,
-    /// The date and time when the transaction was last updated
-    pub update_time: String,
-    /// Additional payment related data - THIS CONTAINS THE ORDER_ID!
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub supplementary_data: Option<PayPalSupplementaryData>,
-}
-
-/// Represents a monetary amount with currency
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalAmount {
-    /// The three-character ISO-4217 currency code
-    pub currency_code: String,
-    /// The value as a decimal string (e.g., "10.00")
-    /// NOT in cents like Stripe!
-    pub value: String,
-}
-
-/// Seller protection details
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalSellerProtection {
-    /// Indicates whether the transaction is eligible for seller protection
-    /// Values: ELIGIBLE, PARTIALLY_ELIGIBLE, NOT_ELIGIBLE
-    pub status: String,
-    /// An array of conditions that are covered for the transaction
-    #[serde(default)]
-    pub dispute_categories: Vec<String>,
-}
-
-/// Breakdown of the seller receivable amount
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalSellerReceivableBreakdown {
-    /// The amount for this captured payment in the currency of the transaction
-    pub gross_amount: PayPalAmount,
-    /// The applicable fee for this captured payment
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub paypal_fee: Option<PayPalAmount>,
-    /// The net amount that the payee receives for this captured payment
-    pub net_amount: PayPalAmount,
-    /// An array of platform or partner fees, commissions, or brokerage fees
-    #[serde(default)]
-    pub platform_fees: Vec<PayPalPlatformFee>,
-}
-
-/// Platform or partner fee details
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalPlatformFee {
-    /// The fee amount
-    pub amount: PayPalAmount,
-    /// The merchant account that receives the fee
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub payee: Option<PayPalPayee>,
-}
-
-/// Payee account details
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalPayee {
-    /// The PayPal-assigned merchant account ID
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub merchant_id: Option<String>,
-    /// The email address of the merchant
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_address: Option<String>,
-}
-
-/// Additional payment-related data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalSupplementaryData {
-    /// Related IDs for the transaction
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_ids: Option<PayPalRelatedIds>,
-}
-
-/// Related transaction identifiers - CRITICAL for linking webhook to your DB!
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalRelatedIds {
-    /// The order ID associated with this capture
-    /// This is what you use to find the paypal_transaction record!
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub order_id: Option<String>,
-    /// The authorization ID associated with this capture
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub authorization_id: Option<String>,
-}
-
-/// HATEOAS link for API navigation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalLink {
-    /// The complete target URL
-    pub href: String,
-    /// The link relation type
-    pub rel: String,
-    /// The HTTP method required to make the related call
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub method: Option<String>,
-}
-
-/// PayPal refund resource (for PAYMENT.CAPTURE.REFUNDED events)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalRefund {
-    /// The PayPal-generated ID for the refund
-    pub id: String,
-    /// The status of the refund
-    /// Values: CANCELLED, PENDING, COMPLETED
-    pub status: String,
-    /// The amount being refunded
-    pub amount: PayPalAmount,
-    /// The reason for the refund
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub note_to_payer: Option<String>,
-    /// The breakdown of the refund
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seller_payable_breakdown: Option<PayPalSellerPayableBreakdown>,
-    /// The API caller-provided external invoice number
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invoice_id: Option<String>,
-    /// Links for HATEOAS navigation
-    #[serde(default)]
-    pub links: Vec<PayPalLink>,
-    /// The date and time when the transaction was created
-    pub create_time: String,
-    /// The date and time when the transaction was last updated
-    pub update_time: String,
-}
-
-/// Breakdown of the seller payable amount for refunds
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayPalSellerPayableBreakdown {
-    /// The amount that the payee refunded to the payer
-    pub gross_amount: PayPalAmount,
-    /// The net amount that the payee's account is debited
-    pub net_amount: PayPalAmount,
-    /// The PayPal fee that is refunded
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub paypal_fee: Option<PayPalAmount>,
-    /// An array of platform or partner fees
-    #[serde(default)]
-    pub platform_fees: Vec<PayPalPlatformFee>,
-    /// The net amount debited from the merchant's PayPal account
-    pub total_refunded_amount: PayPalAmount,
-}
-
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -706,20 +536,6 @@ mod tests {
 
         let deserialized: PayPalEventType = serde_json::from_str(r#""PAYMENT.CAPTURE.COMPLETED""#).unwrap();
         assert!(matches!(deserialized, PayPalEventType::PaymentCaptureCompleted));
-    }
-
-    #[test]
-    fn test_paypal_amount_roundtrip() {
-        let amount = PayPalAmount {
-            currency_code: "USD".to_string(),
-            value: "99.99".to_string(),
-        };
-
-        let json = serde_json::to_string(&amount).unwrap();
-        let deserialized: PayPalAmount = serde_json::from_str(&json).unwrap();
-
-        assert_eq!(deserialized.currency_code, "USD");
-        assert_eq!(deserialized.value, "99.99");
     }
 
     #[test]
@@ -734,7 +550,7 @@ mod tests {
             "create_time": "2024-01-15T10:00:00Z"
         }"#;
 
-        let event: PayPalWebhookEvent = serde_json::from_str(json).unwrap();
+        let event: WebhookEvent = serde_json::from_str(json).unwrap();
 
         assert_eq!(event.id, "WH-123");
         assert_eq!(event.event_type, PayPalEventType::PaymentCaptureCompleted);

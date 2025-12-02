@@ -355,52 +355,6 @@ pub struct CustomAmount {
     pub amount: Option<Money>,
 }
 
-/// The breakdown of the amount. Breakdown provides details such as total item amount, total tax amount, custom amount, shipping and discounts, if any.
-#[skip_serializing_none]
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder)]
-#[builder(setter(strip_option, into), default)]
-pub struct Breakdown {
-    /// The subtotal for all items. Must equal the sum of (items[].unit_amount * items[].quantity) for all items.
-    pub item_total: Option<Money>,
-    /// The discount can be at the item or invoice level, or both. Can be applied as a percent or amount. If you provide both amount and percent, amount takes precedent.
-    pub discount: Option<AggregatedDiscount>,
-    /// The aggregated amount of the item and shipping taxes.
-    pub tax_total: Option<Money>,
-    /// The shipping fee for all items. Includes tax on shipping.
-    pub shipping: Option<ShippingCost>,
-    /// The custom amount to apply to an invoice. If you include a label, you must include the custom amount.
-    pub custom: Option<CustomAmount>,
-}
-
-/// Represents an amount of money.
-#[skip_serializing_none]
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Builder)]
-#[builder(setter(strip_option, into))]
-pub struct Amount {
-    /// The [three-character ISO-4217 currency code](https://developer.paypal.com/docs/integration/direct/rest/currency-codes/) that identifies the currency.
-    pub currency_code: Currency,
-    /// The value, which might be:
-    /// - An integer for currencies like JPY that are not typically fractional.
-    /// - A decimal fraction for currencies like TND that are subdivided into thousandths.
-    ///
-    /// For the required number of decimal places for a currency code, see [Currency Codes](https://developer.paypal.com/docs/api/reference/currency-codes/).
-    pub value: String,
-    /// The breakdown of the amount. Breakdown provides details such as total item amount, total tax amount, custom amount, shipping and discounts, if any.
-    #[builder(default)]
-    pub breakdown: Option<Breakdown>,
-}
-
-impl Amount {
-    /// Creates a new amount with the required values.
-    pub fn new(currency_code: Currency, value: &str) -> Self {
-        Amount {
-            currency_code,
-            value: value.into(),
-            breakdown: None,
-        }
-    }
-}
-
 /// The payment type in an invoicing flow
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -434,7 +388,6 @@ pub enum PaymentMethod {
     /// Payments can be received through other modes.
     Other,
 }
-
 
 /// Payment detail
 #[skip_serializing_none]
